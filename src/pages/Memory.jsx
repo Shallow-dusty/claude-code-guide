@@ -1,74 +1,118 @@
-import { PageHeader, Section, Code, Table, Callout } from '../components'
+import { PageHeader, Section, Callout, Code } from '../components'
+
+function MemoryCompare() {
+  const types = [
+    {
+      name: 'CLAUDE.md', sub: '用户指令', color: '#58a6ff', icon: '📝',
+      traits: [
+        { label: '作者', value: '用户手动编写' },
+        { label: '目的', value: '告诉 Claude 如何工作' },
+        { label: '行数限制', value: '无' },
+        { label: '加载时机', value: '会话开始时' },
+      ],
+    },
+    {
+      name: 'MEMORY.md', sub: 'Claude 笔记', color: '#3fb950', icon: '🧠',
+      traits: [
+        { label: '作者', value: 'Claude 自动写入' },
+        { label: '目的', value: '记录跨会话发现' },
+        { label: '行数限制', value: '200 行（超出截断）' },
+        { label: '加载时机', value: '注入 system prompt' },
+      ],
+    },
+  ]
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {types.map(t => (
+        <div key={t.name} className="rounded-xl border p-5 bg-[#161b22] relative overflow-hidden"
+          style={{ borderColor: `${t.color}30` }}>
+          <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-5" style={{ background: t.color }} />
+          <div className="flex items-center gap-3 mb-4">
+            <div className="text-2xl">{t.icon}</div>
+            <div>
+              <div className="text-sm font-bold font-mono" style={{ color: t.color }}>{t.name}</div>
+              <div className="text-[10px] text-[#8b949e]">{t.sub}</div>
+            </div>
+          </div>
+          <div className="space-y-2">
+            {t.traits.map(tr => (
+              <div key={tr.label} className="flex items-center justify-between">
+                <span className="text-[10px] text-[#8b949e]">{tr.label}</span>
+                <span className="text-[11px] text-[#e6edf3]">{tr.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function HierarchyVisual() {
+  const levels = [
+    { path: '~/.claude/CLAUDE.md', scope: '全局', color: '#58a6ff', w: 100 },
+    { path: '<project>/CLAUDE.md', scope: '项目', color: '#3fb950', w: 70 },
+    { path: '.claude/rules/*.md', scope: '补充规则', color: '#bc8cff', w: 45 },
+  ]
+
+  return (
+    <div className="space-y-2">
+      {levels.map(l => (
+        <div key={l.path} className="flex items-center gap-3">
+          <div className="h-8 rounded-md flex items-center px-3 text-xs font-mono"
+            style={{ width: `${l.w}%`, background: `${l.color}10`, border: `1px solid ${l.color}25`, color: l.color }}>
+            {l.path}
+          </div>
+          <span className="text-[10px] text-[#8b949e] shrink-0">{l.scope}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function BestPractice() {
+  const dos = ['稳定的模式和约定', '关键架构决策和文件路径', '用户工作流偏好', '常见问题的解决方案']
+  const donts = ['当前任务的临时状态', '可能不完整的信息', '与 CLAUDE.md 重复的内容', '推测性或未验证的结论']
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="rounded-lg border border-[#3fb950]/25 bg-[#3fb950]/[0.03] p-4">
+        <div className="text-xs font-semibold text-[#3fb950] mb-2">应该记录</div>
+        {dos.map(d => (
+          <div key={d} className="flex items-center gap-2 text-xs text-[#8b949e] py-0.5">
+            <span className="text-[#3fb950]">✓</span> {d}
+          </div>
+        ))}
+      </div>
+      <div className="rounded-lg border border-[#f85149]/25 bg-[#f85149]/[0.03] p-4">
+        <div className="text-xs font-semibold text-[#f85149] mb-2">不应该记录</div>
+        {donts.map(d => (
+          <div key={d} className="flex items-center gap-2 text-xs text-[#8b949e] py-0.5">
+            <span className="text-[#f85149]">✗</span> {d}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function Memory() {
   return (
     <div>
-      <PageHeader
-        title="持久化记忆系统"
-        desc="让 Claude 跨会话记住上下文。由两部分构成：用户主动写的指令（CLAUDE.md）和 Claude 自动写的笔记（MEMORY.md）。"
-        badge="Memory"
-      />
-
-      <Section title="两种记忆类型">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-          <div className="p-4 rounded-lg border border-[#30363d] bg-[#161b22]">
-            <div className="text-xs font-semibold text-[#58a6ff] mb-2">CLAUDE.md — 用户指令</div>
-            <ul className="text-xs text-[#8b949e] space-y-1.5">
-              <li>• 用户手动编写</li>
-              <li>• 告诉 Claude 如何工作</li>
-              <li>• 无行数限制</li>
-              <li>• 会话开始时自动加载</li>
-            </ul>
-          </div>
-          <div className="p-4 rounded-lg border border-[#30363d] bg-[#161b22]">
-            <div className="text-xs font-semibold text-[#3fb950] mb-2">MEMORY.md — Claude 笔记</div>
-            <ul className="text-xs text-[#8b949e] space-y-1.5">
-              <li>• Claude 自动写入</li>
-              <li>• 记录跨会话的发现</li>
-              <li>• 200 行上限（超出截断）</li>
-              <li>• 自动加载到 system prompt</li>
-            </ul>
-          </div>
-        </div>
-      </Section>
-
+      <PageHeader title="持久化记忆系统" desc="让 Claude 跨会话记住上下文。" badge="Memory" />
+      <Section title="两种记忆对比"><MemoryCompare /></Section>
       <Section title="CLAUDE.md 层级">
-        <Table
-          headers={['文件位置', '生效范围', '典型内容']}
-          rows={[
-            ['~/.claude/CLAUDE.md', '所有项目（全局）', '用户偏好、工作方式、工具链说明'],
-            ['<project>/CLAUDE.md', '当前项目', '项目架构、代码规范、注意事项'],
-            ['.claude/rules/*.md', '补充规则（v2.0.64+）', '条件性规则、场景特定指令'],
-          ]}
-        />
-        <Callout type="warn">
-          已知 Bug（#26160）：上下文压缩（compaction）后 CLAUDE.md 内容可能丢失。建议将关键规则也写入 MEMORY.md 或 rules/ 目录。
-        </Callout>
+        <p className="text-xs text-[#8b949e] mb-3">条越宽 = 生效范围越广。</p>
+        <HierarchyVisual />
       </Section>
-
-      <Section title="MEMORY.md 存储位置">
-        <Code>
-{`~/.claude/projects/<路径哈希>/memory/MEMORY.md
+      <Section title="MEMORY.md 最佳实践"><BestPractice /></Section>
+      <Section title="存储位置">
+        <Code lang="MEMORY.md 路径">{`~/.claude/projects/<路径哈希>/memory/MEMORY.md
 
 例如家目录（/home/user）对应：
-~/.claude/projects/-home-user/memory/MEMORY.md`}
-        </Code>
-        <p className="text-sm text-[#8b949e]">每个工作目录有独立的 MEMORY.md。Claude 在发现值得记录的信息时会自动更新它。</p>
-      </Section>
-
-      <Section title="MEMORY.md 最佳实践">
-        <Table
-          headers={['应该记录', '不应该记录']}
-          rows={[
-            ['稳定的模式和约定', '当前任务的临时状态'],
-            ['关键架构决策和文件路径', '可能不完整的信息'],
-            ['用户工作流偏好', '与 CLAUDE.md 重复的内容'],
-            ['常见问题的解决方案', '推测性或未验证的结论'],
-          ]}
-        />
-        <Callout type="tip">
-          MEMORY.md 超过 200 行后会被截断。建议将详细内容写入独立的 topic 文件（如 debugging.md），在 MEMORY.md 中只保留链接引用。
-        </Callout>
+~/.claude/projects/-home-user/memory/MEMORY.md`}</Code>
+        <Callout type="tip">超过 200 行会被截断。详细内容写入独立 topic 文件，MEMORY.md 中只保留链接。</Callout>
       </Section>
     </div>
   )

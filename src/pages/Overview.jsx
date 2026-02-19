@@ -1,61 +1,145 @@
-import { PageHeader, Section, Code, Table, Badge, ScopeChain, Callout } from '../components'
 import { Link } from 'react-router-dom'
+import { PageHeader, Section, Callout } from '../components'
+
+const systems = [
+  { id: 'mcp', label: 'MCP', sub: '外部工具接入', color: '#58a6ff', to: '/mcp', x: 50, y: 8 },
+  { id: 'skills', label: 'Skills', sub: '工作流定义', color: '#3fb950', to: '/skills', x: 88, y: 50 },
+  { id: 'hooks', label: 'Hooks', sub: '事件拦截', color: '#bc8cff', to: '/hooks', x: 50, y: 92 },
+  { id: 'plugins', label: 'Plugin', sub: '打包分发', color: '#d29922', to: '/plugins', x: 12, y: 50 },
+]
+
+function ArchDiagram() {
+  return (
+    <div className="relative w-full max-w-xl mx-auto aspect-square mb-8">
+      {/* 连接线 SVG */}
+      <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+        {systems.map(s => (
+          <line key={s.id} x1="50" y1="50" x2={s.x} y2={s.y}
+            stroke={s.color} strokeWidth="0.3" strokeDasharray="1.5 1" opacity="0.5" />
+        ))}
+        {/* Plugin 到其他三个的虚线（打包关系） */}
+        {['mcp', 'skills', 'hooks'].map(id => {
+          const t = systems.find(s => s.id === id)
+          return (
+            <line key={`p-${id}`} x1={12} y1={50} x2={t.x} y2={t.y}
+              stroke="#d29922" strokeWidth="0.15" strokeDasharray="0.8 0.8" opacity="0.25" />
+          )
+        })}
+        {/* 中心光晕 */}
+        <circle cx="50" cy="50" r="12" fill="url(#glow)" />
+        <defs>
+          <radialGradient id="glow">
+            <stop offset="0%" stopColor="#58a6ff" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="#58a6ff" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+      </svg>
+
+      {/* 中心节点 */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+        <div className="w-28 h-28 rounded-full border-2 border-[#58a6ff]/40 bg-[#0d1117] flex flex-col items-center justify-center shadow-[0_0_40px_rgba(88,166,255,0.15)]">
+          <div className="text-lg font-bold text-[#e6edf3]">Claude</div>
+          <div className="text-xs text-[#58a6ff]">Code</div>
+        </div>
+      </div>
+
+      {/* 四个系统节点 */}
+      {systems.map(s => (
+        <Link key={s.id} to={s.to}
+          className="absolute z-10 -translate-x-1/2 -translate-y-1/2 group"
+          style={{ left: `${s.x}%`, top: `${s.y}%` }}>
+          <div className="px-4 py-3 rounded-xl border bg-[#161b22] transition-all duration-200 group-hover:scale-110 group-hover:shadow-lg"
+            style={{ borderColor: `${s.color}40`, boxShadow: `0 0 0 0 ${s.color}00` }}>
+            <div className="text-sm font-bold text-center" style={{ color: s.color }}>{s.label}</div>
+            <div className="text-[10px] text-[#8b949e] text-center whitespace-nowrap">{s.sub}</div>
+          </div>
+        </Link>
+      ))}
+
+      {/* Plugin 打包标注 */}
+      <div className="absolute left-[5%] top-[34%] text-[9px] text-[#d29922]/50 -rotate-12">可打包 ↗</div>
+      <div className="absolute left-[5%] top-[62%] text-[9px] text-[#d29922]/50 rotate-12">可打包 ↘</div>
+    </div>
+  )
+}
+
+function ScopeCompare() {
+  const scopes = [
+    {
+      system: 'MCP', color: '#58a6ff',
+      levels: [
+        { name: 'local', desc: '项目+本机', w: 40 },
+        { name: 'project', desc: '项目级', w: 65 },
+        { name: 'user', desc: '全局', w: 90 },
+      ]
+    },
+    {
+      system: 'Skills', color: '#3fb950',
+      levels: [
+        { name: 'Enterprise', desc: '组织', w: 30 },
+        { name: 'Personal', desc: '个人', w: 50 },
+        { name: 'Project', desc: '项目', w: 70 },
+        { name: 'Plugin', desc: '插件', w: 90 },
+      ]
+    },
+    {
+      system: 'Plugin', color: '#d29922',
+      levels: [
+        { name: 'user', desc: '所有项目', w: 50 },
+        { name: 'project', desc: '当前项目', w: 75 },
+        { name: 'local', desc: '本机此项目', w: 100 },
+      ]
+    },
+  ]
+
+  return (
+    <div className="space-y-6">
+      {scopes.map(s => (
+        <div key={s.system}>
+          <div className="text-xs font-semibold mb-2" style={{ color: s.color }}>{s.system} Scope</div>
+          <div className="space-y-1.5">
+            {s.levels.map((l, i) => (
+              <div key={l.name} className="flex items-center gap-3">
+                <div className="relative h-7 rounded-md flex items-center px-3 text-xs font-mono transition-all"
+                  style={{
+                    width: `${l.w}%`,
+                    background: `${s.color}${i === 0 ? '25' : '10'}`,
+                    border: `1px solid ${s.color}${i === 0 ? '50' : '20'}`,
+                    color: i === 0 ? s.color : '#8b949e',
+                  }}>
+                  {l.name}
+                  {i === 0 && <span className="ml-auto text-[10px] opacity-60">← 最高优先级</span>}
+                </div>
+                <span className="text-[10px] text-[#8b949e] shrink-0">{l.desc}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export default function Overview() {
   return (
     <div>
       <PageHeader
         title="Claude Code 配置体系"
-        desc="Claude Code 是一个可扩展的 AI 开发平台。其配置体系由功能层和打包层两部分构成，理解它们的关系是掌握整个系统的关键。"
+        desc="四大系统的关系与层级一览。"
         badge="v2.1.45"
       />
 
-      <Section title="整体架构">
-        <Code lang="架构图">
-{`功能层（独立存在，也可被 Plugin 打包）
-├── MCP 系统      → 给 Claude 接入外部工具（数据库、API、浏览器）
-├── Skills 系统   → 定义可复用的工作流（/slash-command）
-├── Hooks 系统    → 在操作前后插入自定义逻辑
-└── 持久化记忆    → 让 Claude 跨会话记住上下文
-
-打包层
-└── Plugin 系统   → 将上述功能打包成可分发单元`}
-        </Code>
+      <Section title="架构关系图">
+        <p className="text-xs text-[#8b949e] text-center mb-4">点击节点进入详情 · Plugin 可打包其他三个系统</p>
+        <ArchDiagram />
         <Callout type="info">
-          Plugin 不是独立的功能系统，而是打包容器。MCP、Skills、Hooks 可以独立存在，也可以被 Plugin 打包后分发。
+          MCP、Skills、Hooks 是独立功能系统。Plugin 是打包容器，将它们组合成可分发单元。
         </Callout>
       </Section>
 
-      <Section title="各系统速览">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {[
-            { to: '/mcp', title: 'MCP 系统', desc: '外部工具接入协议。分 stdio（本地进程）和 http（远程服务器）两种传输类型，有 local/project/user 三级 scope。', color: '#58a6ff' },
-            { to: '/skills', title: 'Skills 系统', desc: '可复用工作流，通过 SKILL.md 定义。有 Enterprise/Personal/Project/Plugin 四级 scope，同名时高优先级覆盖。', color: '#3fb950' },
-            { to: '/plugins', title: 'Plugin 系统', desc: '打包容器，可包含 .mcp.json、skills/、hooks/、agents/ 四种组件。通过 enabledPlugins 控制是否生效。', color: '#d29922' },
-            { to: '/hooks', title: 'Hooks 系统', desc: '事件驱动的自定义逻辑。在 PreToolUse、PostToolUse、SessionStart 等事件触发时执行 shell 命令。', color: '#bc8cff' },
-            { to: '/config', title: '配置文件', desc: '系统由多个配置文件协同工作：settings.json、.claude.json、installed_plugins.json 等各司其职。', color: '#f85149' },
-            { to: '/memory', title: '持久化记忆', desc: 'CLAUDE.md（用户写给 Claude 的指令）+ MEMORY.md（Claude 自动写的笔记，200 行上限）。', color: '#79c0ff' },
-          ].map(({ to, title, desc, color }) => (
-            <Link key={to} to={to} className="block p-4 rounded-lg border border-[#30363d] bg-[#161b22] hover:border-[#58a6ff]/40 transition-colors group">
-              <div className="text-sm font-semibold mb-1.5 group-hover:text-[#58a6ff] transition-colors" style={{ color }}>{title}</div>
-              <div className="text-xs text-[#8b949e] leading-relaxed">{desc}</div>
-            </Link>
-          ))}
-        </div>
-      </Section>
-
-      <Section title="Scope 体系对比">
-        <Callout type="warn">
-          三个系统各有独立的 scope 体系，语义不同，不要混淆。
-        </Callout>
-        <Table
-          headers={['系统', 'Scope 层级', 'Scope 语义']}
-          rows={[
-            ['MCP', 'local > project > user', '优先级覆盖（同名时高优先级赢）'],
-            ['Skills', 'Enterprise > Personal > Project > Plugin', '优先级覆盖（同名时高优先级赢）'],
-            ['Plugin', 'user / project', '生效范围（决定在哪些目录下加载）'],
-          ]}
-        />
+      <Section title="Scope 层级对比">
+        <p className="text-xs text-[#8b949e] mb-4">三个系统各有独立的 scope 体系。条越窄 = 优先级越高。</p>
+        <ScopeCompare />
       </Section>
     </div>
   )
