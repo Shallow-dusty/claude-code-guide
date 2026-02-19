@@ -9,16 +9,24 @@ export default function Hooks() {
         badge="Hooks"
       />
 
-      <Section title="事件类型">
+      <Section title="事件类型（完整列表）">
         <Table
-          headers={['事件', '触发时机', '典型用途']}
+          headers={['事件', '触发时机']}
           rows={[
-            ['PreToolUse', '工具调用前', '拦截危险操作、记录审计日志'],
-            ['PostToolUse', '工具调用后', '自动格式化、触发测试'],
-            ['SessionStart', '会话开始时', '注入上下文、初始化环境'],
-            ['Stop', '主线程停止时', '清理资源、发送通知'],
-            ['SubagentStop', '子 agent 停止时', '汇总子任务结果'],
-            ['PreCompact', '上下文压缩前', '保存重要信息'],
+            ['SessionStart', '会话开始时'],
+            ['UserPromptSubmit', '用户提交消息时'],
+            ['PreToolUse', '工具调用前'],
+            ['PermissionRequest', '权限请求时'],
+            ['PostToolUse', '工具调用成功后'],
+            ['PostToolUseFailure', '工具调用失败后'],
+            ['Notification', '系统通知时'],
+            ['SubagentStart', '子 agent 启动时'],
+            ['SubagentStop', '子 agent 停止时'],
+            ['Stop', '主线程停止时'],
+            ['TeammateIdle', 'Agent 团队成员空闲时'],
+            ['TaskCompleted', '任务完成时'],
+            ['PreCompact', '上下文压缩前'],
+            ['SessionEnd', '会话结束时'],
           ]}
         />
       </Section>

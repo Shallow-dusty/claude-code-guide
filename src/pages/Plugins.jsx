@@ -13,12 +13,15 @@ export default function Plugins() {
         <Code lang="插件目录结构">
 {`<plugin-name>/
 ├── .claude-plugin/
-│   └── plugin.json      # 元数据（必须）：名称、描述、作者
+│   └── plugin.json      # 元数据（可选）：名称、描述、作者
 ├── .mcp.json            # MCP 配置（可选）
-├── skills/              # Skills 文件（可选）
+├── .lsp.json            # LSP 服务器配置（可选）
+├── skills/              # Skills 文件（可选，新式）
 │   └── <skill-name>/
 │       └── SKILL.md
+├── commands/            # Skills 文件（可选，旧式 Markdown）
 ├── hooks/               # Hooks 配置（可选）
+│   └── hooks.json
 └── agents/              # Agents 配置（可选）`}
         </Code>
         <Callout type="info">
@@ -27,16 +30,17 @@ export default function Plugins() {
       </Section>
 
       <Section title="插件 Scope">
-        <p className="text-sm text-[#8b949e] mb-3">插件的 scope 决定生效范围（非优先级）：</p>
+        <p className="text-sm text-[#8b949e] mb-3">插件的 scope 决定生效范围（非优先级覆盖）：</p>
         <Table
-          headers={['Scope', '生效范围', '存储位置']}
+          headers={['Scope', '配置文件', '生效范围', '提交到 git？']}
           rows={[
-            ['user', '你的所有项目', '~/.claude/plugins/cache/'],
-            ['project', '指定项目目录', '~/.claude/plugins/cache/（绑定路径）'],
+            ['user（默认）', '~/.claude/settings.json', '你的所有项目', '否'],
+            ['project', '.claude/settings.json', '仓库所有协作者', '是'],
+            ['local', '.claude/settings.local.json', '仅本机此项目', '否（gitignored）'],
           ]}
         />
         <Callout type="tip">
-          个人开发者推荐使用 user scope。project scope 适合团队共享配置。
+          个人开发者推荐 user scope。团队共享插件用 project scope（提交到版控）。local scope 适合本机专属覆盖。
         </Callout>
       </Section>
 
@@ -76,17 +80,15 @@ export default function Plugins() {
         </Callout>
       </Section>
 
-      <Section title="插件 MCP 的优先级位置">
-        <p className="text-sm text-[#8b949e] mb-3">插件提供的 MCP 等价于 project scope 优先级，可被 local scope 覆盖：</p>
+      <Section title="插件 MCP 的加载方式">
+        <p className="text-sm text-[#8b949e] mb-3">插件提供的 MCP 由插件系统独立管理，不映射到 local/project/user 任何一个 scope：</p>
         <Code>
-{`local scope MCP（~/.claude.json projects.<路径>）
-    ↓ 覆盖
-插件 MCP（等价 project scope）
-    ↓ 覆盖
-user scope MCP（~/.claude.json 顶层）`}
+{`插件 MCP（独立管理，随插件启用/禁用）
+user scope MCP（~/.claude.json 顶层）
+local scope MCP（~/.claude.json projects.<路径>）`}
         </Code>
-        <Callout type="tip">
-          当插件默认配置不适合当前环境时（如 WSL2 下的 playwright），可以禁用插件并用 user scope MCP 替代，或保留插件并用 local scope 覆盖其 MCP 配置。
+        <Callout type="warn">
+          官方文档说明插件 MCP 与用户配置的 MCP 行为相同，但不通过 /mcp 命令管理。当插件默认配置不适合当前环境时，推荐禁用插件并用 user scope MCP 替代。
         </Callout>
       </Section>
     </div>
